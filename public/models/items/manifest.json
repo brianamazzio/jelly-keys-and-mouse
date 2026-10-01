@@ -1,0 +1,412 @@
+{
+ "duck": {
+  "source": "rubber_duck_toy",
+  "size": [
+   0.0641,
+   0.0857,
+   0.09
+  ],
+  "tris": 4288,
+  "scale": 0.3
+ },
+ "apple": {
+  "source": "food_apple_01",
+  "size": [
+   0.078,
+   0.0683,
+   0.0767
+  ],
+  "tris": 7012,
+  "scale": 0.8
+ },
+ "lemon": {
+  "source": "lemon",
+  "size": [
+   0.0584,
+   0.0811,
+   0.058
+  ],
+  "tris": 4012,
+  "scale": 0.85
+ },
+ "croissant": {
+  "source": "croissant",
+  "size": [
+   0.14,
+   0.0434,
+   0.0529
+  ],
+  "tris": 1990,
+  "scale": 0.7
+ },
+ "baseball": {
+  "source": "baseball_01",
+  "size": [
+   0.0735,
+   0.0753,
+   0.0752
+  ],
+  "tris": 10848,
+  "scale": 1.0
+ },
+ "alarmclock": {
+  "source": "alarm_clock_01",
+  "size": [
+   0.0987,
+   0.1306,
+   0.0501
+  ],
+  "tris": 8985,
+  "scale": 0.75
+ },
+ "stapler": {
+  "source": "vintage_stapler",
+  "size": [
+   0.1668,
+   0.0762,
+   0.0379
+  ],
+  "tris": 4370,
+  "scale": 0.8
+ },
+ "succulent": {
+  "source": "potted_plant_04",
+  "size": [
+   0.0923,
+   0.1471,
+   0.1016
+  ],
+  "tris": 8929,
+  "scale": 0.55
+ },
+ "lightbulb": {
+  "source": "lightbulb_01",
+  "size": [
+   0.06,
+   0.1003,
+   0.06
+  ],
+  "tris": 4372,
+  "scale": 1.0
+ },
+ "magnifier": {
+  "source": "magnifying_glass_01",
+  "size": [
+   0.0991,
+   0.2037,
+   0.02
+  ],
+  "tris": 7240,
+  "scale": 0.75
+ },
+ "spectacles": {
+  "source": "round_spectacles",
+  "size": [
+   0.142,
+   0.0416,
+   0.1341
+  ],
+  "tris": 11810,
+  "scale": 0.9
+ },
+ "thermos": {
+  "source": "plastic_thermos",
+  "size": [
+   0.0984,
+   0.2243,
+   0.0765
+  ],
+  "tris": 5514,
+  "scale": 0.7
+ },
+ "cake": {
+  "source": "carrot_cake",
+  "size": [
+   0.1353,
+   0.0585,
+   0.1352
+  ],
+  "tris": 13790,
+  "scale": 0.6
+ },
+ "cat": {
+  "source": "concrete_cat_statue",
+  "size": [
+   0.0688,
+   0.1274,
+   0.1125
+  ],
+  "tris": 11950,
+  "scale": 0.45
+ },
+ "gnome": {
+  "source": "garden_gnome",
+  "size": [
+   0.0774,
+   0.1797,
+   0.0629
+  ],
+  "tris": 14000,
+  "scale": 0.3
+ },
+ "teapot": {
+  "source": "tea_set_01",
+  "size": [
+   0.1153,
+   0.115,
+   0.1875
+  ],
+  "tris": 12144,
+  "scale": 0.7
+ },
+ "teacup": {
+  "source": "tea_set_01",
+  "size": [
+   0.0855,
+   0.0539,
+   0.1064
+  ],
+  "tris": 4156,
+  "scale": 0.8
+ },
+ "pencilcup": {
+  "source": "stationery_supplies",
+  "size": [
+   0.0837,
+   0.0839,
+   0.0837
+  ],
+  "tris": 768,
+  "scale": 1.0
+ },
+ "pen_a": {
+  "source": "stationery_supplies",
+  "size": [
+   0.1313,
+   0.0142,
+   0.01
+  ],
+  "tris": 1339,
+  "scale": 1.0
+ },
+ "pen_b": {
+  "source": "stationery_supplies",
+  "size": [
+   0.161,
+   0.0103,
+   0.009
+  ],
+  "tris": 721,
+  "scale": 1.0
+ },
+ "book_a": {
+  "source": "book_encyclopedia_set_01",
+  "size": [
+   0.031,
+   0.1899,
+   0.1304
+  ],
+  "tris": 3392,
+  "scale": 0.8
+ },
+ "book_b": {
+  "source": "book_encyclopedia_set_01",
+  "size": [
+   0.0147,
+   0.1899,
+   0.1304
+  ],
+  "tris": 3364,
+  "scale": 0.8
+ },
+ "book_c": {
+  "source": "book_encyclopedia_set_01",
+  "size": [
+   0.0182,
+   0.1899,
+   0.1304
+  ],
+  "tris": 3364,
+  "scale": 0.8
+ },
+ "king": {
+  "source": "chess_set",
+  "size": [
+   0.0415,
+   0.095,
+   0.0417
+  ],
+  "tris": 4172,
+  "scale": 1.0
+ },
+ "rook": {
+  "source": "chess_set",
+  "size": [
+   0.0368,
+   0.0606,
+   0.0367
+  ],
+  "tris": 2976,
+  "scale": 1.0
+ },
+ "knight": {
+  "source": "chess_set",
+  "size": [
+   0.0388,
+   0.075,
+   0.0454
+  ],
+  "tris": 2662,
+  "scale": 1.0
+ },
+ "cassette": {
+  "source": "cassette_player",
+  "size": [
+   0.1295,
+   0.2368,
+   0.0489
+  ],
+  "tris": 4830,
+  "scale": 1.0
+ },
+ "binder": {
+  "source": "binder_notebook",
+  "size": [
+   0.1536,
+   0.0228,
+   0.18
+  ],
+  "tris": 9056,
+  "scale": 0.9
+ },
+ "goblet": {
+  "source": "brass_goblets",
+  "size": [
+   0.0673,
+   0.1224,
+   0.0673
+  ],
+  "tris": 3072,
+  "scale": 0.45
+ },
+ "frame": {
+  "source": "standing_picture_frame_01",
+  "size": [
+   0.0702,
+   0.1748,
+   0.1406
+  ],
+  "tris": 1634,
+  "scale": 0.7
+ },
+ "vase": {
+  "source": "ceramic_vase_01",
+  "size": [
+   0.1018,
+   0.2001,
+   0.1018
+  ],
+  "tris": 10296,
+  "scale": 0.5
+ },
+ "desk": {
+  "source": "metal_office_desk",
+  "size": [
+   2.0,
+   0.7875,
+   0.9472
+  ],
+  "tris": 6898,
+  "scale": 1.0
+ },
+ "chair": {
+  "source": "modern_arm_chair_01",
+  "size": [
+   0.8203,
+   1.0229,
+   0.9866
+  ],
+  "tris": 8916,
+  "scale": 1.0
+ },
+ "bookshelf": {
+  "source": "wooden_bookshelf_worn",
+  "size": [
+   1.374,
+   2.0634,
+   0.5813
+  ],
+  "tris": 10106,
+  "scale": 1.0
+ },
+ "floorplant": {
+  "source": "potted_plant_01",
+  "size": [
+   0.4697,
+   1.0801,
+   0.5062
+  ],
+  "tris": 30000,
+  "scale": 0.8
+ },
+ "desklamp": {
+  "source": "desk_lamp_arm_01",
+  "size": [
+   0.1251,
+   0.5534,
+   0.3806
+  ],
+  "tris": 24102,
+  "scale": 0.62
+ },
+ "ceilinglamp": {
+  "source": "modern_ceiling_lamp_01",
+  "size": [
+   0.4316,
+   0.9516,
+   0.4317
+  ],
+  "tris": 5602,
+  "scale": 1.0
+ },
+ "wallclock": {
+  "source": "wall_clock",
+  "size": [
+   0.3205,
+   0.3205,
+   0.0472
+  ],
+  "tris": 3658,
+  "scale": 1.0
+ },
+ "tallframe": {
+  "source": "hanging_picture_frame_01",
+  "size": [
+   0.4455,
+   0.6307,
+   0.0118
+  ],
+  "tris": 2586,
+  "scale": 0.75
+ },
+ "wideframe": {
+  "source": "fancy_picture_frame_01",
+  "size": [
+   0.603,
+   0.4641,
+   0.02
+  ],
+  "tris": 938,
+  "scale": 1.0
+ },
+ "dartboard": {
+  "source": "dartboard",
+  "size": [
+   0.4507,
+   0.4507,
+   0.0398
+  ],
+  "tris": 6800,
+  "scale": 1.0
+ }
+}
