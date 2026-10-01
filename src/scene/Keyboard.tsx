@@ -121,9 +121,10 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
   // legends: painted asynchronously once the font is in; until then the jelly is plain
   useEffect(() => {
     let alive = true
-    paintLegendAtlas(built.keys, layoutAtlas(built.keys)).then((tex) => {
-      if (!alive) { tex.dispose(); return }
-      material.map = tex
+    paintLegendAtlas(built.keys, layoutAtlas(built.keys)).then(({ map, transmissionMap }) => {
+      if (!alive) { map.dispose(); transmissionMap.dispose(); return }
+      material.map = map
+      material.transmissionMap = transmissionMap
       material.color.set('#ffffff')
       material.needsUpdate = true
     })
@@ -131,6 +132,7 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
   }, [built, material])
 
   const groupRef = useRef<THREE.Group>(null)
+  const resetId = useUI((s) => s.resetId)
   useEffect(() => { groupRef.current?.traverse(castsDeskShadow) }, [built])
   useFrame((_, dt) => {
     sim.update(dt)
@@ -143,6 +145,7 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const w = window as unknown as { __jelly?: Record<string, unknown> }
+    ;(window as unknown as { __jellyTyped?: () => string }).__jellyTyped = () => useUI.getState().typed
     w.__jelly = { ...(w.__jelly ?? {}), keyboard: sim, keyUniforms: uniforms, keyIndex: (code: string) => built.byCode.get(code), focus: (f: 'hero' | 'keyboard' | 'mouse') => useUI.getState().touch(f) }
   }, [sim, built, uniforms])
 
@@ -172,6 +175,7 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
     const [tx, tz] = localTouch(e, built.keys[i])
     pointers.current.set(e.pointerId, i)
     sim.pressKey(i, tx, tz)
+    useUI.getState().typeKey(built.keys[i].code)
     touch('keyboard')
   }
   const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
@@ -183,6 +187,7 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
     if (i !== held) {
       sim.releaseKey(held)
       pointers.current.set(e.pointerId, i)
+      useUI.getState().typeKey(built.keys[i].code)
     }
     sim.pressKey(i, tx, tz)
   }
@@ -204,6 +209,7 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
 
   /* ---------------------------------------------------------------- physical keyboard */
   const heldCodes = useRef(new Set<string>())
+  useEffect(() => { if (resetId) { pointers.current.clear(); heldCodes.current.clear(); sim.releaseAll() } }, [resetId, sim])
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       const code = e.code === 'ContextMenu' ? 'Fn' : e.code
@@ -214,6 +220,7 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
       heldCodes.current.add(code)
       // fingers land a little off-centre, differently every time
       sim.pressKey(i, (Math.random() - 0.5) * 0.35, (Math.random() - 0.5) * 0.3)
+      if (!e.metaKey && !e.ctrlKey) useUI.getState().typeKey(code, e.key)
       touch('keyboard')
     }
     const up = (e: KeyboardEvent) => {
@@ -245,7 +252,7 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
 
   // the case is the same gelatin as the caps, cast as one thick slab, and it sags and wobbles with them
   const caseMaterial = useMemo(() => {
-    const m = makeBodyJellyMaterial({ thickness: 0.02, depth: 0.02 })
+    const m = makeBodyJellyMaterial({ thickness: 0.02, depth: 0.07 })
     patchJellyShader(m, 'case', uniforms)
     return m
   }, [uniforms])
@@ -264,6 +271,7 @@ export function Keyboard(props: { position?: [number, number, number]; rotation?
         customDepthMaterial={depthMaterial}
         castShadow
         receiveShadow
+        userData={{ jellyInteractive: true }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

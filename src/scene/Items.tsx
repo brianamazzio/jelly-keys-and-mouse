@@ -17,14 +17,14 @@ export const ITEMS: ItemDef[] = [
   { id: 'book_a', model: 'book_a', at: [-0.43, -0.3], rot: [0, 0.25, HALF_PI], lift: 0 },
   { id: 'book_b', model: 'book_b', at: [-0.425, -0.3], rot: [0, 0.1, HALF_PI], lift: 0.034 },
   { id: 'book_c', model: 'book_c', at: [-0.43, -0.295], rot: [0, 0.4, HALF_PI], lift: 0.054 },
-  { id: 'vase', model: 'vase', at: [-0.26, -0.37] },
-  { id: 'thermos', model: 'thermos', at: [-0.13, -0.33], rot: [0, -0.5, 0] },
-  { id: 'succulent', model: 'succulent', at: [0.02, -0.35] },
-  { id: 'alarmclock', model: 'alarmclock', at: [0.18, -0.3], rot: [0, -0.2, 0] },
-  { id: 'frame', model: 'frame', at: [0.35, -0.35], rot: [0, -1.2, 0] },
-  { id: 'teapot', model: 'teapot', at: [0.54, -0.3], rot: [0, 0.5, 0] },
+  { id: 'vase', model: 'vase', at: [-0.47, -0.5] },
+  { id: 'thermos', model: 'thermos', at: [0.4, -0.5], rot: [0, -0.5, 0] },
+  { id: 'succulent', model: 'succulent', at: [-0.6, -0.33] },
+  { id: 'alarmclock', model: 'alarmclock', at: [0.34, -0.3], rot: [0, -0.35, 0] },
+  { id: 'frame', model: 'frame', at: [0.53, -0.48], rot: [0, -1.2, 0] },
+  { id: 'teapot', model: 'teapot', at: [0.58, -0.28], rot: [0, 0.5, 0] },
   { id: 'teacup_a', model: 'teacup', at: [0.68, -0.2], rot: [0, 1.0, 0] },
-  { id: 'teacup_b', model: 'teacup', at: [0.66, -0.42], rot: [0, -0.7, 0] },
+  { id: 'teacup_b', model: 'teacup', at: [0.76, -0.46], rot: [0, -0.7, 0] },
   { id: 'gnome', model: 'gnome', at: [0.84, -0.36], rot: [0, -0.4, 0] },
   // middle
   { id: 'goblet', model: 'goblet', at: [-0.5, -0.12] },
@@ -178,6 +178,25 @@ function Item({ def }: { def: ItemDef }) {
   const tmp = useMemo(() => ({ v: new THREE.Vector3(), dv: new THREE.Vector3(), q: new THREE.Quaternion(), a: new THREE.Vector3() }), [])
   const minHalf = Math.min(half.x, half.y, half.z)
 
+  // Reset: back to the spawn pose, at rest, unsquashed
+  const resetId = useUI((s) => s.resetId)
+  const firstReset = useRef(resetId)
+  useEffect(() => {
+    const b = body.current
+    if (!b || resetId === firstReset.current) return
+    if (grab.current?.body === b) grab.current = null
+    const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(...(def.rot ?? [0, 0, 0])))
+    b.setTranslation({ x: spawn.position[0], y: spawn.position[1], z: spawn.position[2] }, true)
+    b.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true)
+    b.setLinvel({ x: 0, y: 0, z: 0 }, true)
+    b.setAngvel({ x: 0, y: 0, z: 0 }, true)
+    const S = st.current
+    S.has = false; S.s = 0; S.sv = 0; S.lag.set(0, 0, 0); S.lagV.set(0, 0, 0); S.floorTime = 0
+    uniforms.uSquash.value.w = 0
+    uniforms.uLag.value.set(0, 0, 0)
+  }, [resetId, def.rot, spawn, uniforms])
+
+
   useFrame((_, frameDt) => {
     const b = body.current
     if (!b) return
@@ -274,6 +293,7 @@ function Item({ def }: { def: ItemDef }) {
         customDepthMaterial={depthMaterial}
         castShadow
         ref={castsDeskShadow}
+        userData={{ jellyInteractive: true }}
         onPointerDown={onPointerDown}
         onPointerOver={() => { if (!grab.current) document.body.style.cursor = 'grab' }}
         onPointerOut={() => { if (!grab.current) document.body.style.cursor = '' }}

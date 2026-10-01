@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#8f1533" />
+    <meta name="theme-color" content="#9e0f2e" />
     <title>JELLY KEYS / JELLY MOUSE</title>
     <link rel="preload" href="/fonts/inter-tight.woff2" as="font" type="font/woff2" crossorigin />
     <style>
@@ -14,18 +14,22 @@
         font-weight: 100 900;
         font-display: block;
       }
-      html, body, #root { margin: 0; height: 100%; overflow: hidden; background: #8f1533; }
+      html, body, #root { margin: 0; height: 100%; overflow: hidden; background: #9e0f2e; }
       body { font-family: 'Inter Tight', system-ui, sans-serif; -webkit-font-smoothing: antialiased; touch-action: none; overscroll-behavior: none; }
       canvas { display: block; touch-action: none; }
-      .copy { position: fixed; inset: 0; pointer-events: none; color: #fbeee4; user-select: none; }
+      .copy { position: fixed; inset: 0; pointer-events: none; color: #ffe3e8; user-select: none; }
       .copy h1 { position: absolute; left: clamp(20px, 3.4vw, 48px); top: clamp(18px, 3vw, 40px); margin: 0; font-size: clamp(11px, 0.85vw, 13px); font-weight: 600; letter-spacing: 0.22em; opacity: 0.72; }
       .copy h1 span { font-weight: 500; opacity: 0.55; }
-      .copy .hint { position: absolute; right: clamp(20px, 3.4vw, 48px); bottom: clamp(18px, 3vw, 40px); margin: 0; font-size: clamp(10px, 0.75vw, 12px); font-weight: 500; letter-spacing: 0.26em; opacity: 0.5; display: flex; gap: 1.4em; }
+      .copy .hint { position: absolute; right: clamp(20px, 3.4vw, 48px); bottom: clamp(18px, 3vw, 40px); margin: 0; font-size: clamp(10px, 0.75vw, 12px); font-weight: 500; letter-spacing: 0.26em; opacity: 0.5; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.6em 1.4em; max-width: calc(100vw - 40px); }
       .copy .hint b { font-weight: 600; opacity: 1; transition: opacity 0.6s ease; }
       .copy .hint b.dim { opacity: 0.35; }
-      .loader { position: fixed; inset: 0; display: grid; place-items: center; background: #8f1533; transition: opacity 0.9s ease; z-index: 2; }
+      .reset { position: fixed; right: clamp(20px, 3.4vw, 48px); top: clamp(14px, 2.6vw, 34px); z-index: 1; font: 600 clamp(10px, 0.75vw, 12px) / 1 'Inter Tight', system-ui, sans-serif; letter-spacing: 0.26em; color: #ffe3e8; background: rgba(90, 0, 16, 0.28); border: 1px solid rgba(255, 227, 232, 0.45); border-radius: 999px; padding: 0.85em 1.4em 0.85em 1.66em; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background 0.2s ease, border-color 0.2s ease; }
+      .reset:hover { background: rgba(90, 0, 16, 0.5); border-color: rgba(255, 227, 232, 0.8); }
+      .reset:focus-visible { outline: 2px solid #ffe3e8; outline-offset: 3px; }
+      .reset:active { transform: scale(0.97); }
+      .loader { position: fixed; inset: 0; display: grid; place-items: center; background: #9e0f2e; transition: opacity 0.9s ease; z-index: 2; }
       .loader.done { opacity: 0; pointer-events: none; }
-      .loader div { width: 10px; height: 10px; border-radius: 50%; background: #fbeee4; animation: pulse 1.2s ease-in-out infinite; }
+      .loader div { width: 10px; height: 10px; border-radius: 50%; background: #ffe3e8; animation: pulse 1.2s ease-in-out infinite; }
       @keyframes pulse { 0%,100% { transform: scale(0.8); opacity: 0.55 } 50% { transform: scale(1.15); opacity: 1 } }
     </style>
   </head>

@@ -8,6 +8,7 @@ import { useUI } from './store'
 export default function App() {
   const ready = useUI((s) => s.ready)
   const focus = useUI((s) => s.focus)
+  const reset = useUI((s) => s.reset)
   // a whole room of translucent jelly is heavy: drop the render resolution if the frame rate sags, raise it again if there is headroom
   const maxDpr = Math.min(window.devicePixelRatio || 1, 2)
   const [dpr, setDpr] = useState(Math.min(maxDpr, 1.5))
@@ -25,6 +26,7 @@ export default function App() {
       <div className="copy" aria-hidden>
         <h1>JELLY KEYS <span>/</span> JELLY MOUSE</h1>
         <p className="hint">
+          <b>ORBIT</b>
           <b>GRAB</b>
           <b>THROW</b>
           <b className={focus === 'mouse' ? 'dim' : ''}>PRESS</b>
@@ -32,6 +34,14 @@ export default function App() {
           <b className={focus === 'keyboard' ? 'dim' : ''}>SCROLL</b>
         </p>
       </div>
+      <button
+        className="reset"
+        type="button"
+        onClick={(e) => { reset(); e.currentTarget.blur() }}
+        aria-label="Reset the scene: put every object back and return the camera to the starting view"
+      >
+        RESET
+      </button>
       <div className={`loader${ready ? ' done' : ''}`}><div /></div>
     </>
   )

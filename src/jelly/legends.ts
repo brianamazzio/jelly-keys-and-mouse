@@ -35,29 +35,39 @@ export function layoutAtlas(keys: KeyInfo[]): AtlasLayout {
  * Paints every legend into one canvas atlas. Background is the jelly tint and legends are ivory ink,
  * so the map *is* the diffuse colour (the material colour stays white). Waits for the bundled font.
  */
-export async function paintLegendAtlas(keys: KeyInfo[], layout: AtlasLayout): Promise<THREE.CanvasTexture> {
+/**
+ * Paints the legends twice: a colour map (jelly tint background, ivory ink) and a transmission map (white =
+ * clear jelly, black = ink). With fully transmissive caps the colour map alone is invisible, so the
+ * transmission map makes the ink opaque: legends read as ivory ink suspended in clear jelly.
+ */
+export async function paintLegendAtlas(keys: KeyInfo[], layout: AtlasLayout): Promise<{ map: THREE.CanvasTexture; transmissionMap: THREE.CanvasTexture }> {
   try {
     await Promise.all([document.fonts.load('600 40px "Inter Tight"'), document.fonts.load('500 40px "Inter Tight"')])
   } catch { /* falls back to system-ui */ }
-  const canvas = document.createElement('canvas')
-  canvas.width = layout.width
-  canvas.height = layout.height
-  const ctx = canvas.getContext('2d')!
-  ctx.fillStyle = '#' + PALETTE.jelly.getHexString()
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  const ink = '#' + PALETTE.legend.getHexString()
-  for (const k of keys) {
-    const c = layout.cells[k.index]
-    drawLegend(ctx, k.code, c.x, c.y, c.w, c.h, ink)
+  const paint = (background: string, ink: string, srgb: boolean) => {
+    const canvas = document.createElement('canvas')
+    canvas.width = layout.width
+    canvas.height = layout.height
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = background
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    for (const k of keys) {
+      const c = layout.cells[k.index]
+      drawLegend(ctx, k.code, c.x, c.y, c.w, c.h, ink)
+    }
+    const texture = new THREE.CanvasTexture(canvas)
+    texture.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace
+    texture.anisotropy = 8
+    texture.generateMipmaps = true
+    texture.minFilter = THREE.LinearMipmapLinearFilter
+    texture.magFilter = THREE.LinearFilter
+    texture.needsUpdate = true
+    return texture
   }
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 8
-  texture.generateMipmaps = true
-  texture.minFilter = THREE.LinearMipmapLinearFilter
-  texture.magFilter = THREE.LinearFilter
-  texture.needsUpdate = true
-  return texture
+  return {
+    map: paint('#' + PALETTE.jelly.getHexString(), '#' + PALETTE.legend.getHexString(), true),
+    transmissionMap: paint('#ffffff', '#000000', false),
+  }
 }
 
 const FONT = '"Inter Tight", system-ui, sans-serif'

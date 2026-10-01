@@ -1,8 +1,8 @@
 # Assets
 
 Every object in the scene is a found model. The only generated geometry is the room shell (floor and
-three walls), which are plain boxes. Sources are in two groups: the keyboard and mouse (CC BY, below), and
-the room and desk objects (CC0, Poly Haven, further down).
+three walls), which are plain boxes. Sources are in two groups: the keyboard, mouse and monitor (CC BY,
+Sketchfab via Objaverse), and the room and desk objects (CC0, Poly Haven, further down).
 
 Both hardware models are **found assets** (not modelled from scratch), sourced through the
 [Objaverse](https://objaverse.allenai.org/) index of Creative-Commons Sketchfab models and then
@@ -61,6 +61,25 @@ Cleanup performed:
 - rescaled to metres (115 mm long), centred, rested on y = 0
 - moved the wheel's origin to its axle so it can spin; at runtime it is drawn 1.3× and lifted
   1.2 mm so the jelly wheel reads clearly (the source nub is very small)
+
+## Computer monitor — "Monitor"
+
+| | |
+|---|---|
+| Author | ElectroDbstp (Sketchfab) |
+| Source | <https://sketchfab.com/3d-models/monitor-24e471ac730f40fcb0501930a83784be> |
+| Licence | **CC Attribution 4.0** (CC BY) — attribution required, commercial use allowed |
+| Original | 5,026 triangles, 4 meshes (panel, stand with base, mount, a small detail), no textures |
+| Objaverse UID | `24e471ac730f40fcb0501930a83784be` |
+
+Why this one: of 126 monitors in the Objaverse `computer_monitor` category, 114 were CC BY; 12 were
+downloaded and inspected as clay renders in Blender. This is a clean, unbranded modern flat panel with a
+thin bezel, a tilted stand and port details on the back, in proportion with the keyboard. (The strongest
+alternative was an Apple iMac model, rejected for its branding and 170,000 triangles.)
+
+Cleanup: scaled to 0.60 m wide (a 27-inch class monitor), origin at the centre of its base, exported
+material-less by `tools/process_room_assets.py`. The lit screen is a shader effect on the panel's
+front faces inside the bezel line, not added geometry. Source kept in `tools/source/`.
 
 ## Room and desk objects — Poly Haven (CC0)
 
@@ -136,7 +155,7 @@ furniture gets an exact triangle-mesh collider.
 
 ## Attribution text (for credits)
 
-> "Keyboard 75%" by kennypang, and "Computer Mouse" by PoneMyintMyat — both CC BY 4.0 via Sketchfab,
+> "Keyboard 75%" by kennypang, "Computer Mouse" by PoneMyintMyat and "Monitor" by ElectroDbstp — all CC BY 4.0 via Sketchfab,
 > modified (split, renamed, subdivided, rescaled, re-materialled as jelly).
 
 ## Reproducing the pipeline

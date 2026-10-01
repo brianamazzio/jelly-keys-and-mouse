@@ -60,6 +60,8 @@ ITEMS = {
     'tallframe':  ('hanging_picture_frame_01', None, 0.75, 'center', None),
     'wideframe':  ('fancy_picture_frame_01', None, 1.00, 'center', None),
     'dartboard':  ('dartboard', None, 1.00, 'center', None),
+    # ---- not from Poly Haven: Objaverse / Sketchfab, CC BY (see ASSETS.md); 0.60 m wide = a 27" class monitor
+    'monitor':    ('glb:24e471ac730f40fcb0501930a83784be', None, 0.70, 'floor', None),
 }
 
 def bounds(objs):
@@ -82,7 +84,10 @@ def pick(meshes, sel):
 manifest = {}
 for name, (src, sel, scale, origin, decimate) in ITEMS.items():
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, src, src + '.gltf'))
+    if src.startswith('glb:'):
+        bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, '..', src[4:] + '.glb'))
+    else:
+        bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, src, src + '.gltf'))
     meshes = [o for o in bpy.context.scene.objects if o.type == 'MESH']
     bpy.ops.object.select_all(action='DESELECT')
     for o in meshes: o.select_set(True)

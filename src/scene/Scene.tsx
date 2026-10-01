@@ -1,7 +1,8 @@
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Environment, Lightformer, PerspectiveCamera } from '@react-three/drei'
+import { Environment, Lightformer, OrbitControls, PerspectiveCamera } from '@react-three/drei'
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { DeskShadows } from './DeskShadows'
 import { EffectComposer, N8AO, ToneMapping, Vignette, SMAA } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
@@ -29,59 +30,129 @@ const IDLE_MS = 9000
 const DESK_SHADOW_SIZE: [number, number] = [DESK.w, DESK.d]
 const DESK_SHADOW_POS: [number, number, number] = [DESK.x, 0.0006, DESK.z]
 
+/** Where the camera may go when you move it yourself: inside the room, and a little out of its open front. */
+const CAM_BOUNDS = new THREE.Box3(new THREE.Vector3(-1.5, -0.7, -0.55), new THREE.Vector3(2.66, 1.45, 2.2))
+const TARGET_BOUNDS = new THREE.Box3(new THREE.Vector3(-1.5, -0.78, -0.6), new THREE.Vector3(2.7, 1.4, 1.4))
+
+/**
+ * Camera. In 'auto' mode it flies to whatever you are using (keyboard, mouse) and back to the whole-desk
+ * view after idling. Dragging empty space orbits, scrolling zooms, right-drag (or two fingers) pans: that
+ * switches to 'free' mode, where nothing moves the camera but you, until Reset.
+ */
 function CameraRig() {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
   const size = useThree((s) => s.size)
-  const pointer = useThree((s) => s.pointer)
-  const scene = useThree((s) => s.scene)
-  const pos = useRef(SHOTS.hero.pos.clone())
-  const target = useRef(SHOTS.hero.target.clone())
+  const controls = useRef<OrbitControlsImpl>(null)
   const tmpPos = useMemo(() => new THREE.Vector3(), [])
   const tmpTarget = useMemo(() => new THREE.Vector3(), [])
 
   useFrame((_, dt) => {
-    const { focus, lastInteraction, setFocus } = useUI.getState()
-    if (focus !== 'hero' && performance.now() - lastInteraction > IDLE_MS) setFocus('hero')
-    let shot = SHOTS[focus]
-    let snap = false
-    if (import.meta.env.DEV) {
-      const o = (window as unknown as { __jellyCam?: Shot }).__jellyCam
-      if (o) { shot = o; snap = true }
-    }
+    const c = controls.current
+    if (!c) return
+    const { focus, camMode, lastInteraction, setFocus } = useUI.getState()
     const portrait = size.width / size.height < 0.9
-    tmpPos.copy(shot.pos)
-    tmpTarget.copy(shot.target)
-    // squarer windows pull back so the mouse stays in frame
-    const back = THREE.MathUtils.clamp(1.6 / (size.width / size.height), 1, 1.45)
-    if (!portrait && back > 1 && !snap) tmpPos.sub(tmpTarget).multiplyScalar(back).add(tmpTarget)
-    if (portrait) {
-      // narrow viewports: pull back and climb so the desk still fits
-      tmpPos.sub(tmpTarget).multiplyScalar(focus === 'hero' ? 1.45 : 1.7).add(tmpTarget)
-      tmpPos.y += focus === 'hero' ? 0.2 : 0.12
+    let snap = false
+    if (camMode === 'auto') {
+      if (focus !== 'hero' && performance.now() - lastInteraction > IDLE_MS) setFocus('hero')
+      let shot = SHOTS[focus]
+      if (import.meta.env.DEV) {
+        const o = (window as unknown as { __jellyCam?: Shot }).__jellyCam
+        if (o) { shot = o; snap = true }
+      }
+      tmpPos.copy(shot.pos)
+      tmpTarget.copy(shot.target)
+      // squarer windows pull back so the mouse stays in frame
+      const back = THREE.MathUtils.clamp(1.6 / (size.width / size.height), 1, 1.45)
+      if (!portrait && back > 1 && !snap) tmpPos.sub(tmpTarget).multiplyScalar(back).add(tmpTarget)
+      if (portrait) {
+        // narrow viewports: pull back and climb so the desk still fits
+        tmpPos.sub(tmpTarget).multiplyScalar(focus === 'hero' ? 1.45 : 1.7).add(tmpTarget)
+        tmpPos.y += focus === 'hero' ? 0.2 : 0.12
+      }
+      const t = snap ? 1 : Math.min(1, dt * 1.6)
+      camera.position.lerp(tmpPos, t)
+      c.target.lerp(tmpTarget, t)
+      c.update()
+    } else {
+      // free: stay inside the room
+      c.target.clamp(TARGET_BOUNDS.min, TARGET_BOUNDS.max)
+      camera.position.clamp(CAM_BOUNDS.min, CAM_BOUNDS.max)
     }
-    const t = snap ? 1 : Math.min(1, dt * 1.6)
-    pos.current.lerp(tmpPos, t)
-    target.current.lerp(tmpTarget, t)
-    // slow breathing drift + a whisper of pointer parallax keeps the still alive
-    const now = performance.now() / 1000
-    const drift = focus === 'hero' ? 1 : 0.4
-    camera.position.set(
-      pos.current.x + Math.sin(now * 0.37) * 0.004 * drift + pointer.x * 0.006,
-      pos.current.y + Math.sin(now * 0.29 + 1.3) * 0.0025 * drift + pointer.y * 0.003,
-      pos.current.z + Math.cos(now * 0.31) * 0.003 * drift,
-    )
-    camera.lookAt(target.current)
-    // keep the horizon haze behind the products however far the camera has pulled back
-    const fog = scene.fog as THREE.Fog | null
-    if (fog) {
-      const d = pos.current.distanceTo(target.current)
-      fog.near = Math.max(0.55, d * 1.3)
-      fog.far = Math.max(1.5, d * 3.5)
-    }
-    const fov = portrait ? 38 : focus === 'hero' ? 34 : 28
+    const fov = portrait ? 38 : camMode === 'free' || focus === 'hero' ? 34 : 28
     camera.fov += (fov - camera.fov) * (snap ? 1 : Math.min(1, dt * 2.5))
     camera.updateProjectionMatrix()
   })
+
+  return (
+    <>
+      <OrbitControls
+        ref={controls}
+        makeDefault
+        target={SHOTS.hero.target}
+        enableDamping
+        dampingFactor={0.08}
+        rotateSpeed={0.55}
+        zoomSpeed={0.7}
+        panSpeed={0.8}
+        screenSpacePanning
+        minDistance={0.06}
+        maxDistance={2.4}
+        maxPolarAngle={Math.PI * 0.62}
+        onStart={() => useUI.getState().setCamMode('free')}
+      />
+      <PointerRouter controls={controls} />
+    </>
+  )
+}
+
+/**
+ * Decides, before the orbit controls see an event, whether it is meant for an object or for the camera.
+ * A press on anything interactive (a loose object, the keyboard, the mouse) switches the controls off
+ * until release, so grabbing and typing never also orbit. A scroll over the jelly mouse spins its wheel
+ * instead of zooming.
+ */
+function PointerRouter({ controls }: { controls: React.RefObject<OrbitControlsImpl | null> }) {
+  const gl = useThree((s) => s.gl)
+  const camera = useThree((s) => s.camera)
+  const scene = useThree((s) => s.scene)
+  useEffect(() => {
+    const raycaster = new THREE.Raycaster()
+    const ndc = new THREE.Vector2()
+    const hitFlag = (e: MouseEvent, flag: string) => {
+      const r = gl.domElement.getBoundingClientRect()
+      ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1)
+      raycaster.setFromCamera(ndc, camera)
+      const hit = raycaster.intersectObjects(scene.children, true).find((h) => h.object.visible && (h.object as THREE.Mesh).isMesh)
+      return !!hit && hit.object.userData[flag] === true
+    }
+    const down = (e: PointerEvent) => {
+      const c = controls.current
+      if (!c || e.target !== gl.domElement) return
+      if (hitFlag(e, 'jellyInteractive')) c.enabled = false
+    }
+    const up = () => {
+      const c = controls.current
+      if (c) c.enabled = true
+    }
+    const wheel = (e: WheelEvent) => {
+      const c = controls.current
+      if (!c || e.target !== gl.domElement) return
+      if (hitFlag(e, 'jellyWheel')) {
+        c.enableZoom = false
+        setTimeout(() => { c.enableZoom = true }, 0)
+      }
+    }
+    window.addEventListener('pointerdown', down, true)
+    window.addEventListener('pointerup', up, true)
+    window.addEventListener('pointercancel', up, true)
+    window.addEventListener('wheel', wheel, { capture: true, passive: true })
+    return () => {
+      window.removeEventListener('pointerdown', down, true)
+      window.removeEventListener('pointerup', up, true)
+      window.removeEventListener('pointercancel', up, true)
+      window.removeEventListener('wheel', wheel, true)
+    }
+  }, [gl, camera, scene, controls])
   return null
 }
 
@@ -137,7 +208,8 @@ function Post() {
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
       <N8AO aoRadius={0.014} distanceFalloff={0.03} intensity={2.6} quality={small ? 'medium' : 'high'} halfRes={small} color="#3a0d18" />
-      <ToneMapping mode={ToneMappingMode.AGX} />
+      {/* Khronos PBR Neutral keeps saturated reds saturated; AgX washed them toward white */}
+      <ToneMapping mode={ToneMappingMode.NEUTRAL} />
       <Vignette eskil={false} offset={0.28} darkness={small ? 0.25 : 0.42} />
       <SMAA />
     </EffectComposer>
@@ -158,11 +230,13 @@ export function Scene() {
     gl.shadowMap.type = THREE.PCFShadowMap
     gl.shadowMap.enabled = !DEBUG.has('noshadow')
     gl.toneMapping = THREE.NoToneMapping
+    // overall brightness; the post-processing tone mapping reads this
+    gl.toneMappingExposure = 1.15
     gl.transmissionResolutionScale = 1
   }, [gl])
   return (
     <>
-      <color attach="background" args={['#8f1533']} />
+      <color attach="background" args={['#bd0f2c']} />
       <PerspectiveCamera makeDefault fov={28} near={0.02} far={12} position={SHOTS.hero.pos.toArray()} />
       <CameraRig />
       <Studio />

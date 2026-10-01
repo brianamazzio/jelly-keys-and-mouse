@@ -3,7 +3,7 @@
 *Familiar desktop hardware, suddenly made of jelly.*
 
 A full-screen, real-time 3D scene: a whole desk in a small room, where everything is the same
-translucent cranberry gelatin. A keyboard and mouse you can type on and click, thirty-odd desk objects
+translucent cranberry gelatin. A computer (monitor with a glowing screen, keyboard, mouse) you can type on and click, thirty-odd desk objects
 you can pick up, throw and bounce (a duck, an apple, a teapot, chess pieces, a gnome...), on a found
 office desk, with a chair, bookshelf, plant, lamps, clock and pictures around it. Every object is a
 found model; nothing was modelled for this.
@@ -23,14 +23,21 @@ Node 20+ recommended. WebGL2 is required.
 
 | Where | Input | Response |
 |---|---|---|
+| Empty space (walls, floor, desk top) | drag | orbit the camera around the room |
+| Anywhere except the jelly mouse | scroll / pinch | zoom in and out |
+| Empty space | right-drag / shift-drag / two-finger drag | pan |
+| RESET button (top right) | click | every object goes back to its spot, keys and mouse are released, the camera returns to the starting view |
 | Any loose object | press and drag | it lifts off the desk and follows the pointer, still colliding with everything; it wobbles as you move it |
 | Any loose object | release while moving | it is thrown, bounces, squashes on impact and settles; anything that lands on the floor drops back onto the desk after a moment |
-| Keyboard | press / drag across caps, or type on your physical keyboard | cap travels, top caves under the fingertip, sides bulge, neighbours wobble, the whole board sags and rocks |
+| Keyboard | press / drag across caps, or type on your physical keyboard | cap travels, top caves under the fingertip, sides bulge, neighbours wobble, the whole board sags and rocks; the letters appear on the monitor |
 | Mouse | left / right click and hold | that side dents around the click point; holding squeezes the whole body |
 | Mouse | scroll wheel over the mouse | the jelly wheel spins with inertia and detents and compresses |
 
-The camera shows the whole desk, moves in when you use the keyboard or mouse, and drifts back after
-about 9 s of idling. The browser context menu is suppressed only over the jelly mouse.
+Pressing on an object always acts on the object (grab, type, click); only presses on empty space move
+the camera, and a scroll over the jelly mouse spins its wheel instead of zooming. Until you move the
+camera yourself, it shows the whole desk, moves in when you use the keyboard or mouse, and drifts back
+after about 9 s. Once you have orbited, zoomed or panned, it stays exactly where you put it until
+Reset. The camera is kept inside the room (and a little out of its open front).
 
 ## What is simulated vs. approximated
 
@@ -69,13 +76,30 @@ Be precise about this: **there is no soft-body solver**.
 - **Furniture, walls and floor do not deform.** They are the same material, but static.
 - **Shadows follow the deformation** — the same displacement is injected into the depth
   materials used for shadow maps.
-- **Jelly material** — `MeshPhysicalMaterial`: rough transmission (cloudy body) + sharp clearcoat
-  (moist skin) + sheen (edge scattering hint) + volume attenuation. A per-vertex optical thickness
-  (thick at cap/dome centres, thin at chamfers/rims, reduced where dented) drives the attenuation,
-  so colour is richer where the jelly is thicker. This is not true subsurface scattering.
-- **Room** — furniture and decor are translucent jelly. The shell (floor and three walls) is an
-  opaque version of the same jelly: translucent objects need something non-translucent behind them
-  to refract, and three.js cannot show one translucent object through another.
+- **Jelly material** — `MeshPhysicalMaterial` tuned as clear gelatin: full transmission, low
+  roughness, a sharp clearcoat for the moist skin, and colour that comes from volume attenuation
+  rather than the surface. The optical thickness is set per pixel: the shape's own variation (thick
+  cap centres, thin chamfers, thinner where dented) times how directly the surface faces the viewer,
+  so thin edges stay lighter and thick middles deepen. The surface tint itself is a vibrant red, so
+  even the thinnest parts (keycap walls, pens) stay saturated. Keycap legends
+  are opaque ivory ink inside the clear caps (a transmission map).
+- **Translucency glow (approximation)** — light scattered inside gelatin is faked in the fragment
+  shader: a warm red glow that is strongest at thin rims and thin parts, plus back-light from the
+  studio's rim light passing through toward the camera. Thick middles stay deep crimson, so each
+  object has bright edges and a dark core and separates from its neighbours. Furniture uses the same
+  glow; the desk top gets less, so it stays a slightly deeper stage for the objects. Overall
+  brightness is set with the renderer exposure (1.15). This is not true
+  subsurface scattering.
+- **Room** — furniture and decor are clear red jelly. The shell (floor and three walls) is an
+  opaque version of the same red jelly, with a wet clearcoat and a faint deep-red self-glow standing
+  in for light scattered inside thick gelatin: three.js cannot show one translucent object through
+  another, so the clear jelly needs something solid behind it to refract. The desk top has no
+  clearcoat and dimmed reflections, because a large glossy surface reflected the key light white.
+- **Monitor screen** — shows a minimal text editor that fills with whatever you type, on your real
+  keyboard or by pressing the jelly keys (Backspace deletes, Enter starts a new line, Reset clears it).
+  It is a canvas texture drawn in the page and mapped by the shader onto the panel's front faces inside
+  the bezel line; no geometry was added. The screen does not cast light.
+  The monitor is static and collides as an exact mesh.
 - **Desk shadows (approximation)** — soft contact shadows: a camera under the desk top looks up at
   the objects (not the desk), nearer means darker, and the result is blurred and tinted cranberry.
   They follow objects as they move and fade as objects are lifted. They are drawn from undeformed
@@ -83,14 +107,14 @@ Be precise about this: **there is no soft-body solver**.
 - **Lighting** — an HDR studio built from area-light formers (large soft key, controlled fill, rim
   strip, dark negative-fill card) for coherent reflections, one shadow-casting key light, blurred
   contact shadows re-rendered every frame, and screen-space AO (N8AO) for contact depth.
-- **Post** — AgX tone mapping, screen-space ambient occlusion, mild vignette, SMAA. No bloom, no
+- **Post** — Khronos PBR Neutral tone mapping (keeps saturated reds saturated; AgX washed them toward white), screen-space ambient occlusion, mild vignette, SMAA. No bloom, no
   depth of field.
 - **Adaptive resolution** — render resolution starts at up to 1.5x and steps down (to 0.85x) or up
   (to the display's own density, capped at 2x) according to the measured frame rate.
 
 ## Assets
 
-See [ASSETS.md](ASSETS.md). The keyboard and mouse are CC BY models from Sketchfab (via Objaverse);
+See [ASSETS.md](ASSETS.md). The keyboard, mouse and monitor are CC BY models from Sketchfab (via Objaverse);
 the desk, furniture, decor and all loose objects are 41 CC0 models from Poly Haven. Each was inspected
 and cleaned in headless Blender (`tools/process_assets.py`, `tools/process_room_assets.py`), and the
 unmodified sources are kept in `tools/source/`. Legends are authored at runtime in Inter Tight (OFL).

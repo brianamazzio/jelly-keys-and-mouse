@@ -40,7 +40,6 @@ export function Mouse(props: { position?: [number, number, number]; rotation?: [
 
   const shellMaterial = useMemo(() => {
     const m = makeJellyMaterial({ thickness: 0.02 })
-    m.attenuationDistance = 0.016
     patchJellyShader(m, 'mouse', uniforms)
     return m
   }, [uniforms])
@@ -51,7 +50,7 @@ export function Mouse(props: { position?: [number, number, number]; rotation?: [
   }, [uniforms])
   const wheelMaterial = useMemo(() => {
     const m = makeJellyMaterial({ thickness: 0.004 })
-    m.roughness = 0.22
+    m.roughness = 0.1
     return m
   }, [])
   // rigid lower body and band: same gelatin, thicker volumes. The band is a hair denser so the
@@ -60,12 +59,12 @@ export function Mouse(props: { position?: [number, number, number]; rotation?: [
   // (one displacement function for every part keeps the seams closed). The band is a hair denser so the
   // product's part lines still read even though everything is one material.
   const bodyMaterial = useMemo(() => {
-    const m = makeBodyJellyMaterial({ thickness: 0.024, depth: 0.018 })
+    const m = makeBodyJellyMaterial({ thickness: 0.024, depth: 0.06 })
     patchJellyShader(m, 'mouse', uniforms)
     return m
   }, [uniforms])
   const bandMaterial = useMemo(() => {
-    const m = makeBodyJellyMaterial({ thickness: 0.02, depth: 0.009 })
+    const m = makeBodyJellyMaterial({ thickness: 0.02, depth: 0.035 })
     patchJellyShader(m, 'mouse', uniforms)
     return m
   }, [uniforms])
@@ -77,6 +76,8 @@ export function Mouse(props: { position?: [number, number, number]; rotation?: [
 
   const wheelBase = useMemo(() => nodes.wheel.position.clone(), [nodes])
   const groupRef = useRef<THREE.Group>(null)
+  const resetId = useUI((s) => s.resetId)
+  useEffect(() => { if (resetId) sim.releaseAll() }, [resetId, sim])
   useEffect(() => { groupRef.current?.traverse(castsDeskShadow) }, [])
 
 
@@ -154,6 +155,7 @@ export function Mouse(props: { position?: [number, number, number]; rotation?: [
         customDepthMaterial={shellDepth}
         castShadow
         receiveShadow
+        userData={{ jellyInteractive: true, jellyWheel: true }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onWheel={onWheel}
@@ -162,11 +164,11 @@ export function Mouse(props: { position?: [number, number, number]; rotation?: [
         onPointerOut={() => (document.body.style.cursor = '')}
       />
       {/* the whole mouse is pressable: grabbing the body or band squeezes it like the shell */}
-      <mesh geometry={nodes.body.geometry} material={bodyMaterial} customDepthMaterial={shellDepth} castShadow receiveShadow
+      <mesh geometry={nodes.body.geometry} material={bodyMaterial} customDepthMaterial={shellDepth} castShadow receiveShadow userData={{ jellyInteractive: true, jellyWheel: true }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onWheel={onWheel} onContextMenu={(e) => e.nativeEvent.preventDefault()} />
-      <mesh geometry={nodes.band.geometry} material={bandMaterial} customDepthMaterial={shellDepth} castShadow receiveShadow
+      <mesh geometry={nodes.band.geometry} material={bandMaterial} customDepthMaterial={shellDepth} castShadow receiveShadow userData={{ jellyInteractive: true, jellyWheel: true }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onWheel={onWheel} onContextMenu={(e) => e.nativeEvent.preventDefault()} />
-      <mesh geometry={nodes.wheel_housing.geometry} material={housingMaterial} customDepthMaterial={shellDepth} />
+      <mesh geometry={nodes.wheel_housing.geometry} material={housingMaterial} customDepthMaterial={shellDepth} userData={{ jellyInteractive: true, jellyWheel: true }} />
       <mesh
         ref={wheelRef}
         geometry={nodes.wheel.geometry}
@@ -174,6 +176,7 @@ export function Mouse(props: { position?: [number, number, number]; rotation?: [
         position={[wheelBase.x, wheelBase.y + WHEEL_LIFT, wheelBase.z]}
         scale={WHEEL_SCALE}
         castShadow
+        userData={{ jellyInteractive: true, jellyWheel: true }}
         onWheel={onWheel}
         onPointerDown={(e) => { e.stopPropagation(); sim.scroll(90); touch('mouse') }}
         onContextMenu={(e) => e.nativeEvent.preventDefault()}
